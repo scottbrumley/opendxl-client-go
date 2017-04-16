@@ -23,17 +23,6 @@ import (
 	"os"
 )
 
-type Config struct {
-	Certs struct {
-		      	BrokerCertChain string
-		      	CertFile string
-			PrivateKey string
-		}
-	Brokers struct {
-
-		}
-}
-
 func NewTLSConfig(cfg *ini.File) *tls.Config {
 	certCA := cfg.Section("Certs").Key("CertFile").String()
 	clientCRT := cfg.Section("Certs").Key("CertFile").String()
@@ -107,7 +96,7 @@ func connect(tlsconfig *tls.Config,cfg *ini.File){
 
 	}
 
-	opts.SetClientID("ssl-sample").SetTLSConfig(tlsconfig)
+	opts.SetClientID("dxlclient").SetTLSConfig(tlsconfig)
 	opts.SetDefaultPublishHandler(f)
 
 	// Start the connection
@@ -120,7 +109,10 @@ func connect(tlsconfig *tls.Config,cfg *ini.File){
 		println("Connected!")
 	}
 
-	c.Subscribe("/mcafee/service/tie/file/reputation", 0, nil)
+	if token := c.Subscribe("/mcafee/service/tie/file/reputation", 0, nil); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+		os.Exit(1)
+	}
 
 	i := 0
 	for _ = range time.Tick(time.Duration(1) * time.Second) {
@@ -131,6 +123,11 @@ func connect(tlsconfig *tls.Config,cfg *ini.File){
 		//text := fmt.Sprintf("this is msg #%d!", i)
 		//c.Publish("/go-mqtt/sample", 0, false, text)
 		i++
+	}
+
+	if token := c.Unsubscribe("/mcafee/service/tie/file/reputation"); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+		os.Exit(1)
 	}
 
 	c.Disconnect(250)

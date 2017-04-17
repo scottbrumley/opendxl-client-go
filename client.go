@@ -21,6 +21,7 @@ import (
 	"github.com/go-ini/ini"
 	"strings"
 	"os"
+	"go/token"
 )
 
 func NewTLSConfig(cfg *ini.File) *tls.Config {
@@ -113,6 +114,7 @@ func connect(tlsconfig *tls.Config,cfg *ini.File){
 		fmt.Println(token.Error())
 		os.Exit(1)
 	}
+	println(string(token.STRING))
 
 	i := 0
 	for _ = range time.Tick(time.Duration(1) * time.Second) {
